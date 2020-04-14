@@ -140,3 +140,188 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
 ```
 
 ## 9.2. 파일에 읽고 쓰기
+
+- 자바 io 이용 
+- file : 파일 디렉토리 지칭
+- fileinputstream : 바이트를 읽는 함수
+- fileOutputstream : 바이트를 쓰는 
+- FileReader : 파일에 데이터 읽음 
+- FileWriter : ㅍㅏ일에 데이터 씀
+  
+- 외부 저장 공간은 사용자에 따라 있을 수도 없을 수도 있으면 내부 저장소를 사용하면 앱 제거시 사라진다.
+- 외부 공간이 있는지 확인 하는 것이 중요 하며 이를 위해 자바에서 환경 함수을 제공한다.
+- Environment.getExternalStorageDirectory().getAbsolutePath() 내부저장소 경로
+- Environment.getExternalStorageState() 외부 저장 공간 상태
+- Environment.getExternalStorageDirectory().getAbsolutePath() 외부 저장 경로 
+
+## 9.2.1. 외부 저장 공간 이용 
+
+
+``` java
+     
+ /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    /* Checks if external storage is available to at least read */
+    public boolean isExternalStorageReadable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state) ||
+            Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+```
+
+>MEDIA_MOUNTED 재공되는 상태 MEDIA_MOUNTED_READ_ONLY 읽거나 쓰기 가능 상태 인지
+- 퍼미션 사용 등록
+ ``` xml
+    
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    
+```
+
+``` java
+     
+ FileWriter writer;
+try{
+    String dirPath=Environment.getExternalStorageDirectory().getAbsolutePath()+"/myApp";
+    File dir=new File(dirPath);
+    if(!dir.exists()){
+        dir.mkdir();
+    }
+    File file=new File(dir+"/myfile.txt");
+    if(!file.exists()){
+        file.createNewFile();
+    }
+    writer=new FileWriter(file, true);
+    writer.write(content);
+    writer.flush();
+    writer.close();
+
+    Intent intent=new Intent(this, ReadFileActivity.class);
+    startActivity(intent);
+}catch (Exception e){
+    e.printStackTrace();
+}
+
+```
+
+>file.createNewFile() 자동으로 파일명 중복 방지 
+
+- 공용 폴더 사용
+
+> getExternalStoragePublicDirectory()
+
+- 첫 번쨰 인자로 저장소 구분
+
+    - Environment.DIRECTORY_ALARMS : 알람으로 사용할 오디오 파일 폴더
+    - Environment.DIRECTORY_DCIM : 카메라로 촬영한 사진 폴더
+
+    - Environment.DIRECTORY_DOWNLOADS : 다운로드 파일 폴더
+    - Environment.DIRECTORY_MUSIC : 음악 사진 폴더
+
+    - Environment.DIRECTORY_MOVIES : 영상 파일 폴더
+    - Environment.DIRECTORY_NOTIFICATIONS : 알람음으로 사용할 오디오 파일 폴더
+    - Environment.DIRECTORY_PICTURES :이미지 파일 폴더
+
+``` java
+     
+File file=new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/myApp/myfile.txt");
+try{
+    BufferedReader reader=new BufferedReader(new FileReader(file));
+    StringBuffer buffer=new StringBuffer();
+    String line;
+    while((line=reader.readLine()) != null){
+        buffer.append(line);
+    }
+    textView.setText(buffer.toString());
+    reader.close();
+}catch (Exception e){
+    e.printStackTrace();
+}
+
+```
+
+### 9.2.2. 내부 저장 공간 이용 
+
+``` java
+String filename = "myfile.txt";
+ FileWriter writer;
+try{
+
+    File file=new File(getFilesDir(), filename);
+    if(!file.exists()){
+        file.createNewFile();
+    }
+    writer=new FileWriter(file, true);
+    writer.write(content);
+    writer.flush();
+    writer.close();
+
+}catch (Exception e){
+    e.printStackTrace();
+}
+
+```
+
+
+``` java
+     
+File file=new File(getFilesDir(),"myfile.txt");
+try{
+    BufferedReader reader=new BufferedReader(new FileReader(file));
+    StringBuffer buffer=new StringBuffer();
+    String line;
+    while((line=reader.readLine()) != null){
+        buffer.append(line);
+    }
+}catch (Exception e){
+    e.printStackTrace();
+}
+
+```
+
+> getFilesDir() 통해서도 파일 내부에 경로 
+
+## 9.3. SharedPreferences
+
+- SharedPreferences는 키 값 구조
+
+- getPreferences() 하나의 화면에서만 이용
+- getSharedPreferences("my_prefs", Context.MODE_PRIVATE) 인자로 파일명만들어 관리하여 이용
+- PreferenceManger.getDefaulSharedPreferences(this) 패키지명에 "_preferences" 로 파일명
+
+- MODE_PRIVATE : 자기앱내에서 사용, 외부 접근 불가
+- MODE_WORLD_READABLE : 외부앱에서 읽기 -> 보안상 미사용 
+- MODE_WORLD_WRITEABLE : 외부앱에서 쓰기 -> 보안상 미사용 
+
+- 저장 방법 
+    - putBoolean(String key, boolean value)
+    - putFloat(String key, float value)
+    - putInt(String key, int value)
+    - putLong(String key, long value)
+    - putString(String key, String value)
+
+``` java
+     
+SharedPreferences.Editer editer = sharedPref.edit();
+editer.utString("1", "h");
+editer.commit();
+
+```
+
+- 출력 방법 
+    - getBoolean(String key, boolean value)
+    - getFloat(String key, float value)
+    - getInt(String key, int value)
+    - getLong(String key, long value)
+    - getString(String key, String value)
