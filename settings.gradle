@@ -1,0 +1,3 @@
+rootProject.name='AndroidLab'
+include ':app'
+include ':part3_9'
