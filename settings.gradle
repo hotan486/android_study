@@ -1,3 +1,4 @@
 rootProject.name='AndroidLab'
 include ':app'
 include ':part3_9'
+include ':part3_mission'
